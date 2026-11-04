@@ -1,0 +1,53 @@
+
+{% extends "base.html" %}
+
+{% block title %}Категории | TaskFlow{% endblock %}
+
+{% block content %}
+
+<h1>Моите категории</h1>
+<p>Организирай задачите си по категории.</p>
+
+<section>
+    <h2>Добави категория</h2>
+
+    <form action="{{ url_for('pages.add_category') }}" method="POST">
+        <label for="name">Име на категория</label>
+
+        <input type="text" id="name" name="name"
+               placeholder="Например: Спорт"
+               maxlength="50" required>
+
+        <button type="submit">Добави категория</button>
+    </form>
+</section>
+
+<section>
+    <h2>Списък с категории</h2>
+
+    {% if categories %}
+        {% for category in categories %}
+            <article class="task-card">
+                <h3>{{ category.name }}</h3>
+
+                <p>
+                    Брой задачи: {{ category.task_count }}
+                </p>
+
+                <form
+                    action="{{ url_for('pages.delete_category', category_id=category.id) }}"
+                    method="POST"
+                    onsubmit="return confirm('Сигурен ли си, че искаш да изтриеш тази категория?')">
+
+                    <button type="submit" class="delete-btn">
+                        Изтрий
+                    </button>
+                </form>
+            </article>
+        {% endfor %}
+    {% else %}
+        <p>Все още няма добавени категории.</p>
+    {% endif %}
+</section>
+
+{% endblock %}
