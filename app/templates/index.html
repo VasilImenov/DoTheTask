@@ -181,11 +181,6 @@
 
     </div>
 
-
-    <a class="edit-btn" href="{{ url_for('pages.edit_task', task_id=task.id) }}">
-      ✎ Редактирай
-    </a>
-
     <form action="{{ url_for('pages.delete_task', task_id=task.id) }}" method="POST"
       onsubmit="return confirm('Сигурен ли си, че искаш да изтриеш тази задача?')">
       <button type="submit" class="delete-btn">
