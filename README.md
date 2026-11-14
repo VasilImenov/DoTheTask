@@ -88,3 +88,7 @@ docker compose start
 - Dozzle: `http://localhost:8080`
 
 HTTPS използва самоподписан сертификат, затова браузърът може да покаже предупреждение.
+
+## UML диаграма
+
+![UML диаграма на TaskFlow](UML-diagram.png)

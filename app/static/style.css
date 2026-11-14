@@ -351,3 +351,8 @@ nav a:hover {
     text-decoration: line-through;
     color: #6b7280;
 }
+
+.status-overdue {
+    background: #fee2e2;
+    color: #b91c1c;
+}

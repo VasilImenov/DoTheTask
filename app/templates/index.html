@@ -148,10 +148,13 @@
       <strong>Статус:</strong>
 
       {% if task.completed %}
-      <span class="status status-completed">✓ Завършена</span>
+        <span class="status status-completed">✓ Завършена</span>
+      {% elif task.is_overdue %}
+        <span class="status status-overdue">⚠ Просрочена</span>
       {% else %}
-      <span class="status status-active">Активна</span>
+        <span class="status status-active">Активна</span>
       {% endif %}
+
     </p>
 
 

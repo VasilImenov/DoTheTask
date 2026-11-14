@@ -13,10 +13,15 @@ def index():
     priority = request.args.get("priority", "all")
     sort = request.args.get("sort", "newest")
 
+    
     sql = """
         SELECT tasks.id, tasks.title, tasks.description,
-               tasks.priority, tasks.due_date, tasks.completed,
-               categories.name AS category
+            tasks.priority, tasks.due_date, tasks.completed,
+            categories.name AS category,
+            (
+               tasks.due_date < CURRENT_DATE
+               AND tasks.completed = FALSE
+            ) AS is_overdue
         FROM tasks
         LEFT JOIN categories ON tasks.category_id = categories.id
         WHERE 1=1
