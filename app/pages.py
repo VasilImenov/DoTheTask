@@ -151,7 +151,7 @@ def edit_task(task_id):
     )
 
     if task is None:
-        return "Задачата не е намерена", 404
+        return "Task not found", 404
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
@@ -161,10 +161,10 @@ def edit_task(task_id):
         category_id = request.form.get("category_id") or None
 
         if not title:
-            return "Заглавието е задължително", 400
+            return "Title is required", 400
 
         if priority not in ("low", "medium", "high"):
-            return "Невалиден приоритет", 400
+            return "Invalid priority", 400
 
         db = get_db()
 

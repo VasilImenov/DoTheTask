@@ -1,28 +1,86 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}TaskFlow{% endblock %}</title>
+
+  <title>{% block title %}DoTheTask{% endblock %}</title>
+
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
 
-  <header>
-    <a class="brand" href="{{ url_for('pages.index') }}">TaskFlow</a>
+  <div class="app-layout">
 
-    <nav>
-      <a href="{{ url_for('pages.index') }}">Задачи</a>
-      <a href="{{ url_for('pages.categories_page') }}">Категории</a>
-    </nav>
-  </header>
+    <aside class="sidebar">
 
+      <div class="sidebar-brand">
+        <a class="brand" href="{{ url_for('pages.index') }}">
+          <span class="brand-icon">✓</span>
+          DoTheTask
+        </a>
+      </div>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+      <div class="sidebar-section-title">
+        WORKSPACE
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <a href="{{ url_for('pages.index') }}"
+          class="sidebar-link {% if request.endpoint == 'pages.index' %}active{% endif %}">
+          <span>☷</span>
+          Tasks
+        </a>
+
+        <a href="{{ url_for('pages.categories_page') }}"
+          class="sidebar-link {% if request.endpoint == 'pages.categories_page' %}active{% endif %}">
+          <span>▦</span>
+          Categories
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <small>DoTheTask © 2026</small>
+      </div>
+
+    </aside>
+
+    <div class="main-layout">
+
+      <header class="topbar">
+
+        <div class="topbar-breadcrumb">
+
+          <a class="topbar-home" href="{{ url_for('pages.index') }}">
+            Home
+          </a>
+
+          <span>/</span>
+
+          {% if request.endpoint == 'pages.categories_page' %}
+          <span>Categories</span>
+          {% elif request.endpoint == 'pages.edit_task' %}
+          <span>Edit Task</span>
+          {% else %}
+          <span>Tasks</span>
+          {% endif %}
+
+        </div>
+
+      </header>
+
+      <main class="page-content">
+        {% block content %}{% endblock %}
+      </main>
+
+    </div>
+
+  </div>
+
 </body>
 
 </html>

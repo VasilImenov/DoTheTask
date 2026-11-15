@@ -1,201 +1,270 @@
 {% extends "base.html" %}
 
-{% block title %}Моите задачи | TaskFlow{% endblock %}
+{% block title %}My Tasks | DoTheTask{% endblock %}
 
 {% block content %}
 
-<h1>Моите задачи</h1>
-<p>Организирай задачите си лесно и удобно.</p>
+<div class="board-heading">
+  <div>
+    <h1>My Tasks</h1>
+    <p>Organize and manage your tasks.</p>
+  </div>
 
+  <button type="button" class="board-create-btn" onclick="document.getElementById('create-task-dialog').showModal()">
+    + New Task
+  </button>
+</div>
 
+<!-- Dashboard -->
 <div class="dashboard">
+
   <div class="stat-card">
     <div class="stat-icon">📋</div>
-    <h3>Общо задачи</h3>
+    <h3>Total Tasks</h3>
     <p>{{ stats.total }}</p>
   </div>
 
   <div class="stat-card">
     <div class="stat-icon">⏳</div>
-    <h3>Активни</h3>
+    <h3>Active</h3>
     <p>{{ stats.active }}</p>
   </div>
 
   <div class="stat-card">
     <div class="stat-icon">✅</div>
-    <h3>Завършени</h3>
+    <h3>Completed</h3>
     <p>{{ stats.completed }}</p>
   </div>
 
   <div class="stat-card">
     <div class="stat-icon">⚠️</div>
-    <h3>Просрочени</h3>
+    <h3>Overdue</h3>
     <p>{{ stats.overdue }}</p>
   </div>
+
 </div>
 
+<!-- Task Board -->
+<section class="task-list">
 
-<section class="task-form">
-  <h2>Добави нова задача</h2>
+  <h2>Task Board</h2>
 
-  <form action="{{ url_for('pages.add_task') }}" method="POST">
-    <label for="title">Заглавие</label>
-    <input type="text" id="title" name="title" placeholder="Например: Подготовка за изпит" maxlength="150" required>
+  <!-- Filters -->
+  <form action="{{ url_for('pages.index') }}" method="GET" class="filter-form">
 
-    <label for="description">Описание</label>
-    <textarea id="description" name="description" placeholder="Допълнителна информация"></textarea>
+    <label for="search">Search</label>
+    <input type="text" id="search" name="search" placeholder="Search tasks..." value="{{ search }}">
 
-    <label for="priority">Приоритет</label>
-    <select id="priority" name="priority">
-      <option value="low">Нисък</option>
-      <option value="medium" selected>Среден</option>
-      <option value="high">Висок</option>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="all" {% if status=="all" %}selected{% endif %}>
+        All
+      </option>
+      <option value="active" {% if status=="active" %}selected{% endif %}>
+        Active
+      </option>
+      <option value="completed" {% if status=="completed" %}selected{% endif %}>
+        Completed
+      </option>
     </select>
 
-    <label for="due_date">Краен срок</label>
+    <label for="filter-priority">Priority</label>
+    <select id="filter-priority" name="priority">
+      <option value="all" {% if priority=="all" %}selected{% endif %}>
+        All
+      </option>
+      <option value="low" {% if priority=="low" %}selected{% endif %}>
+        Low
+      </option>
+      <option value="medium" {% if priority=="medium" %}selected{% endif %}>
+        Medium
+      </option>
+      <option value="high" {% if priority=="high" %}selected{% endif %}>
+        High
+      </option>
+    </select>
+
+    <label for="sort">Sort By</label>
+    <select id="sort" name="sort">
+      <option value="newest" {% if sort=="newest" %}selected{% endif %}>
+        Newest
+      </option>
+      <option value="oldest" {% if sort=="oldest" %}selected{% endif %}>
+        Oldest
+      </option>
+      <option value="due_date" {% if sort=="due_date" %}selected{% endif %}>
+        Due Date
+      </option>
+      <option value="priority" {% if sort=="priority" %}selected{% endif %}>
+        Priority
+      </option>
+    </select>
+
+    <button type="submit">Apply Filters</button>
+
+    <a class="reset-btn" href="{{ url_for('pages.index') }}">
+      Clear
+    </a>
+
+  </form>
+
+  <!-- Kanban Board -->
+  <div class="kanban-board">
+
+    {% for column in [
+    {"key": "todo", "title": "TO DO"},
+    {"key": "overdue", "title": "OVERDUE"},
+    {"key": "done", "title": "DONE"}
+    ] %}
+
+    <div class="kanban-column kanban-{{ column.key }}">
+
+      <h3 class="kanban-column-title">
+        {{ column.title }}
+      </h3>
+
+      {% for task in tasks %}
+
+      {% set task_column = "done" if task.completed else
+      ("overdue" if task.is_overdue else "todo") %}
+
+      {% if task_column == column.key %}
+
+      <article class="task-card {% if task.completed %}task-completed{% endif %}">
+
+        <h3>{{ task.title }}</h3>
+
+        {% if task.description %}
+        <p class="task-description">
+          {{ task.description }}
+        </p>
+        {% endif %}
+
+        <div class="task-meta">
+
+          {% if task.priority == "high" %}
+          <span class="priority priority-high">
+            High
+          </span>
+          {% elif task.priority == "medium" %}
+          <span class="priority priority-medium">
+            Medium
+          </span>
+          {% else %}
+          <span class="priority priority-low">
+            Low
+          </span>
+          {% endif %}
+
+          <span class="task-category">
+            {{ task.category or "No Category" }}
+          </span>
+
+        </div>
+
+        {% if task.due_date %}
+        <p class="task-date">
+          📅 {{ task.due_date.strftime("%d.%m.%Y") }}
+        </p>
+        {% endif %}
+
+        <!-- Task Actions -->
+        <div class="task-actions">
+
+          <form action="{{ url_for('pages.complete_task', task_id=task.id) }}" method="POST">
+
+            <button type="submit" class="complete-btn">
+              {% if task.completed %}
+              ↩ Reactivate
+              {% else %}
+              ✓ Complete
+              {% endif %}
+            </button>
+
+          </form>
+
+          <a class="edit-btn" href="{{ url_for('pages.edit_task', task_id=task.id) }}" title="Edit Task"
+            aria-label="Edit Task">
+            ✎
+          </a>
+
+          <form action="{{ url_for('pages.delete_task', task_id=task.id) }}" method="POST"
+            onsubmit="return confirm('Are you sure you want to delete this task?')">
+
+            <button type="submit" class="delete-btn" title="Delete Task" aria-label="Delete Task">
+              ✕
+            </button>
+
+          </form>
+
+        </div>
+
+      </article>
+
+      {% endif %}
+      {% endfor %}
+
+    </div>
+
+    {% endfor %}
+
+  </div>
+
+  {% if not tasks %}
+  <p>No tasks found.</p>
+  {% endif %}
+
+</section>
+
+<!-- Create Task Dialog -->
+<dialog id="create-task-dialog" class="task-dialog">
+
+  <div class="dialog-heading">
+    <h2>Create New Task</h2>
+
+    <button type="button" class="dialog-close" aria-label="Close"
+      onclick="document.getElementById('create-task-dialog').close()">
+      ✕
+    </button>
+  </div>
+
+  <form action="{{ url_for('pages.add_task') }}" method="POST">
+
+    <label for="title">Title</label>
+    <input type="text" id="title" name="title" placeholder="Enter task title" maxlength="150" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" placeholder="Enter task description"></textarea>
+
+    <label for="priority">Priority</label>
+    <select id="priority" name="priority">
+      <option value="low">Low</option>
+      <option value="medium" selected>Medium</option>
+      <option value="high">High</option>
+    </select>
+
+    <label for="due_date">Due Date</label>
     <input type="date" id="due_date" name="due_date">
 
-    <label for="category_id">Категория</label>
+    <label for="category_id">Category</label>
     <select id="category_id" name="category_id">
-      <option value="">Без категория</option>
+
+      <option value="">No Category</option>
+
       {% for category in categories %}
       <option value="{{ category.id }}">
         {{ category.name }}
       </option>
       {% endfor %}
+
     </select>
 
-    <button type="submit">Добави задача</button>
-  </form>
-</section>
+    <button type="submit">
+      Create Task
+    </button>
 
-<section class="task-list">
-  <h2>Списък със задачи</h2>
-
-  <form action="{{ url_for('pages.index') }}" method="GET" class="filter-form">
-
-    <label for="search">Търсене</label>
-    <input type="text" id="search" name="search" placeholder="Търси задача..." value="{{ search }}">
-
-    <label for="status">Статус</label>
-    <select id="status" name="status">
-      <option value="all" {% if status=="all" %}selected{% endif %}>Всички</option>
-      <option value="active" {% if status=="active" %}selected{% endif %}>Активни</option>
-      <option value="completed" {% if status=="completed" %}selected{% endif %}>Завършени</option>
-    </select>
-
-    <label for="filter-priority">Приоритет</label>
-    <select id="filter-priority" name="priority">
-      <option value="all" {% if priority=="all" %}selected{% endif %}>Всички</option>
-      <option value="low" {% if priority=="low" %}selected{% endif %}>Нисък</option>
-      <option value="medium" {% if priority=="medium" %}selected{% endif %}>Среден</option>
-      <option value="high" {% if priority=="high" %}selected{% endif %}>Висок</option>
-    </select>
-
-    <label for="sort">Сортиране</label>
-    <select id="sort" name="sort">
-      <option value="newest" {% if sort=="newest" %}selected{% endif %}>Най-нови</option>
-      <option value="oldest" {% if sort=="oldest" %}selected{% endif %}>Най-стари</option>
-      <option value="due_date" {% if sort=="due_date" %}selected{% endif %}>По краен срок</option>
-      <option value="priority" {% if sort=="priority" %}selected{% endif %}>По приоритет</option>
-    </select>
-
-    <button type="submit">Приложи филтрите</button>
-
-    <a class="reset-btn" href="{{ url_for('pages.index') }}">
-      Изчисти филтрите
-    </a>
   </form>
 
-  {% if tasks %}
-  {% for task in tasks %}
-
-  <article class="task-card {% if task.completed %}task-completed{% endif %}">
-
-    <h3>{{ task.title }}</h3>
-
-    {% if task.description %}
-    <p>{{ task.description }}</p>
-    {% endif %}
-
-
-    <p>
-      <strong>Приоритет:</strong>
-
-      {% if task.priority == "high" %}
-      <span class="priority priority-high">Висок</span>
-      {% elif task.priority == "medium" %}
-      <span class="priority priority-medium">Среден</span>
-      {% else %}
-      <span class="priority priority-low">Нисък</span>
-      {% endif %}
-    </p>
-
-    <p>
-      <strong>Категория:</strong>
-      {{ task.category or "Без категория" }}
-    </p>
-
-    {% if task.due_date %}
-    <p>
-      <strong>Краен срок:</strong>
-      {{ task.due_date.strftime("%d.%m.%Y") }}
-    </p>
-    {% endif %}
-
-
-    <p>
-      <strong>Статус:</strong>
-
-      {% if task.completed %}
-        <span class="status status-completed">✓ Завършена</span>
-      {% elif task.is_overdue %}
-        <span class="status status-overdue">⚠ Просрочена</span>
-      {% else %}
-        <span class="status status-active">Активна</span>
-      {% endif %}
-
-    </p>
-
-
-
-    <div class="task-actions">
-
-      <form action="{{ url_for('pages.complete_task', task_id=task.id) }}" method="POST">
-        <button type="submit" class="complete-btn">
-          {% if task.completed %}
-          ↩ Активирай
-          {% else %}
-          ✓ Завърши
-          {% endif %}
-        </button>
-      </form>
-
-      <a class="edit-btn" href="{{ url_for('pages.edit_task', task_id=task.id) }}">
-        ✎ Редактирай
-      </a>
-
-      <form action="{{ url_for('pages.delete_task', task_id=task.id) }}" method="POST"
-        onsubmit="return confirm('Сигурен ли си, че искаш да изтриеш тази задача?')">
-        <button type="submit" class="delete-btn">
-          Изтрий
-        </button>
-      </form>
-
-    </div>
-
-    <form action="{{ url_for('pages.delete_task', task_id=task.id) }}" method="POST"
-      onsubmit="return confirm('Сигурен ли си, че искаш да изтриеш тази задача?')">
-      <button type="submit" class="delete-btn">
-        Изтрий
-      </button>
-    </form>
-
-  </article>
-  {% endfor %}
-  {% else %}
-  <p>Все още нямаш добавени задачи.</p>
-  {% endif %}
-</section>
+</dialog>
 
 {% endblock %}
