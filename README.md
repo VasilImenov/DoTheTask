@@ -92,3 +92,4 @@ HTTPS използва самоподписан сертификат, затов
 ## UML диаграма
 
 ![UML диаграма на TaskFlow](UML-diagram.png)
+![Презентация](TaskFlow_Pres.pptx)
